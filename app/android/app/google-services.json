@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "N/A",
+    "project_id": "N/A",
+    "storage_bucket": "N/A"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "N/A",
+        "android_client_info": {
+          "package_name": "com.serenstudio.sotam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "N/A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

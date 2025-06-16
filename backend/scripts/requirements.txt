@@ -1,0 +1,6 @@
+tqdm
+xlrd
+openpyxl
+pandas
+pymongo
+requests

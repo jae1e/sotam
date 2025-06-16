@@ -1,0 +1,91 @@
+version: "3.9" # optional since v1.27.0
+
+services:
+  mongo:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.mongo
+    container_name: mongo
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    ports:
+      - "27017:27017"
+    volumes:
+      - /home/ubuntu/db:/data/db
+      - /home/ubuntu/mongodump:/mongodump
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - app-network
+    # network_mode: "host"
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.backend
+    depends_on:
+      mongo:
+        condition: service_healthy
+    container_name: backend
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      # - "traefik.http.middlewares.backend-ratelimit.ratelimit.average=60"
+      # - "traefik.http.middlewares.backend-ratelimit.ratelimit.burst=30"
+      # # - "traefik.http.middlewares.backend-ratelimit.ratelimit.period=10s" # default: 1s
+      # - "traefik.http.routers.backend.middlewares=backend-ratelimit@docker"
+      - "traefik.http.routers.backend.rule=Host(`N/A`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+
+  traefik:
+    image: "traefik:v2.10"
+    container_name: "traefik"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=parkjaeil0108@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/home/ubuntu/letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - app-network
+
+volumes:
+  mongo_data:
+
+networks:
+  app-network:

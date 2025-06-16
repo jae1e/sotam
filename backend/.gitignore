@@ -1,0 +1,7 @@
+data/
+scripts/data
+scripts/gov_api/output
+
+__pycache__/
+
+.DS_Store
